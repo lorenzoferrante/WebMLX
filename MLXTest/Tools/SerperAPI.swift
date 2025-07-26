@@ -9,7 +9,8 @@ import Foundation
 
 // MARK: - Serper API Networking
 final class SerperAPI {
-    private let apiKey: String = "e246e47eb961fb6fe6b9c78b0b336f335a529aa2bc537616acbccd4cadf64f2e"
+    /// API key is loaded from environment to avoid hardcoding secrets.
+    private let apiKey: String = ProcessInfo.processInfo.environment["SERPER_API_KEY"] ?? ""
     private let session: URLSession
 
     init(session: URLSession = .shared) {

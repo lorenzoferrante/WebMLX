@@ -20,7 +20,7 @@ struct FunctionCall: Decodable {
     let parameters: [String: String]
 }
 
-@MainActor
+
 @Observable
 class MLXViewModel {
     
@@ -86,7 +86,7 @@ class MLXViewModel {
             }
         } catch {
             print(error.localizedDescription)
-            errorMessage = error.localizedDescription
+            await MainActor.run { self.errorMessage = error.localizedDescription }
         }
     }
     
@@ -111,7 +111,7 @@ class MLXViewModel {
     
     func generate(messages: [Chat.Message], includeWebSearch: Bool = false) async {
         let tools = includeWebSearch ? [webSearchToolSpec] : []
-        isRunning = true
+        await MainActor.run { self.isRunning = true }
         
         if modelContainer == nil {
             await loadModel()
@@ -119,12 +119,12 @@ class MLXViewModel {
         
         guard let modelContainer else {
             StatusManager.shared.clearStatus()
-            isRunning = false
+            await MainActor.run { self.isRunning = false }
             return
         }
         
         do {
-            let result = try await modelContainer.perform { @MainActor context in
+            let result = try await modelContainer.perform {  context in
                 var systemMessages = messages
                 systemMessages.insert(.init(role: .system, content: systemPrompt), at: 0)
                 
@@ -169,7 +169,7 @@ class MLXViewModel {
                 
                 return try MLXLMCommon.generate(input: input, parameters: .init(), context: context) { tokens in
                     let text = context.tokenizer.decode(tokens: tokens)
-                    
+
                     Task { @MainActor in
                         chat[chat.count-1].content = text
                         output = text
@@ -182,10 +182,10 @@ class MLXViewModel {
             
             tokensPerSecond = result.tokensPerSecond
         } catch {
-            errorMessage = error.localizedDescription
+            await MainActor.run { self.errorMessage = error.localizedDescription }
         }
         
-        isRunning = false
+        await MainActor.run { self.isRunning = false }
         StatusManager.shared.clearStatus()
     }
     
@@ -228,22 +228,29 @@ class MLXViewModel {
             let response = try await serperAPI.search(query: webSearchQuery)
             let links = response.organicResults.map(\.link)
             let crawler = FirecrawlAPI()
-            
-            for link in links[...4] {
-                StatusManager.shared.setStatus(to: "Reading \(link)...")
-                
-                print("[DEBUG] Extracting content from: \(link)")
-                do {
-                    let raw = try await crawler.scrapeMarkdown(from: link).replacingOccurrences(of: "\n", with: "")
-                    let summary = try await shortSummarize(text: raw, userQuery: query, context: modelContext)
-                    
-                    StatusManager.shared.setStatus(to: "Summarizing \(link)...")
-                    
-                    print("[DEBUG] summary: \(summary)")
-                    context.append(summary)
-                } catch {
-                    print("[DEBUG] Error extracting content: \(error.localizedDescription)")
-                    continue
+
+            try await withThrowingTaskGroup(of: String?.self) { group in
+                for link in links.prefix(4) {
+                    group.addTask {
+                        StatusManager.shared.setStatus(to: "Reading \(link)...")
+                        print("[DEBUG] Extracting content from: \(link)")
+                        do {
+                            let raw = try await crawler.scrapeMarkdown(from: link).replacingOccurrences(of: "\n", with: "")
+                            let summary = try await self.shortSummarize(text: raw, userQuery: query, context: modelContext)
+                            StatusManager.shared.setStatus(to: "Summarizing \(link)...")
+                            print("[DEBUG] summary: \(summary)")
+                            return summary
+                        } catch {
+                            print("[DEBUG] Error extracting content: \(error.localizedDescription)")
+                            return nil
+                        }
+                    }
+                }
+
+                for try await summary in group {
+                    if let summary {
+                        context.append(summary)
+                    }
                 }
             }
         }
@@ -291,9 +298,11 @@ class MLXViewModel {
             let segments = chunkByTokens(text: sanitizedText, maxTokens: maxChunkTokens, context: context)
             var partialSummaries: [String] = []
             for segment in segments {
-                StatusManager.shared.setStatus(to: "Summaring chunk ...")
-                let segSummary = try await shortSummarize(text: segment, userQuery: userQuery, context: context)
-                partialSummaries.append(segSummary)
+                try await autoreleasepool {
+                    StatusManager.shared.setStatus(to: "Summaring chunk ...")
+                    let segSummary = try await shortSummarize(text: segment, userQuery: userQuery, context: context)
+                    partialSummaries.append(segSummary)
+                }
             }
             let merged = partialSummaries.joined(separator: "\n")
             return try await shortSummarize(text: merged, userQuery: userQuery, context: context)

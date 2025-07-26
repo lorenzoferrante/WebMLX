@@ -37,7 +37,8 @@ private struct ScrapeRequest: Encodable {
 
 /// A client for scraping web pages via the Firecrawl API and extracting Markdown content.
 public class FirecrawlAPI {
-    private let apiKey: String = "fc-86cab48709644bfe880cacbff636e7fc"
+    /// API key is loaded from environment to avoid hardcoding secrets.
+    private let apiKey: String = ProcessInfo.processInfo.environment["FIRECRAWL_API_KEY"] ?? ""
     private let session: URLSession
 
     /// Initialize with your Firecrawl API key.
