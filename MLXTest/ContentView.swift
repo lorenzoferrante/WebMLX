@@ -31,6 +31,7 @@ struct ContentView: View {
                 ChatView(vm: $vm)
                     .ignoresSafeArea(.keyboard)
                 BottomBar(vm: $vm, prompt: $prompt)
+                StatusView()
             }
             .toolbar {
                 ToolbarItem {
@@ -50,7 +51,6 @@ struct ContentView: View {
                 }
             }
             .onAppear {
-                statusManager.status = "Performing web search..."
                 let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
                 print(documents.absoluteString)
                 if vm.getModelConfiguration() == nil {

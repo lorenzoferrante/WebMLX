@@ -98,6 +98,7 @@ struct BottomBar: View {
         
         print("[DEBUG] \(isWebSearch)")
         await vm.generate(messages: vm.chat, includeWebSearch: isWebSearch)
+        StatusManager.shared.clearStatus()
     }
 }
 

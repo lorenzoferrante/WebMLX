@@ -12,11 +12,22 @@ struct StatusView: View {
     
     var body: some View {
         VStack(alignment: .center) {
-            
+            if statusManager.status != "" {
+                Text(statusManager.status)
+                    .padding()
+                    .glassEffect()
+            } else {
+                EmptyView()
+            }
+            Spacer()
         }
+        .padding()
     }
 }
 
 #Preview {
     StatusView()
+        .onAppear {
+            StatusManager.shared.setStatus(to: "Hello world!")
+        }
 }
