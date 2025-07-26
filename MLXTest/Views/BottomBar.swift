@@ -52,8 +52,11 @@ struct BottomBar: View {
                                 isWebSearch.toggle()
                             } label: {
                                 Image(systemName: "network")
+                                    .foregroundColor(isWebSearch ? .accentColor : .secondary)
                             }
-                            .tint(isWebSearch ? Color.accentColor : Color.secondary)
+                            .buttonStyle(.plain)
+                            .contentShape(Rectangle())
+                            .padding(8)
 
                             Spacer()
                             
@@ -89,6 +92,7 @@ struct BottomBar: View {
             vm.chat.append(.assistant("Generating..."))
         }
         
+        print("[DEBUG] \(isWebSearch)")
         await vm.generate(messages: vm.chat, includeWebSearch: isWebSearch)
     }
 }

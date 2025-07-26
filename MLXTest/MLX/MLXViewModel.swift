@@ -107,7 +107,14 @@ class MLXViewModel {
             let result = try await modelContainer.perform { @MainActor context in
                 var systemMessages = messages
                 systemMessages.insert(.init(role: .system, content: systemPrompt), at: 0)
-                let userInput = UserInput(chat: systemMessages, tools: tools)
+                
+                let userInput: UserInput
+                if includeWebSearch {
+                    userInput = UserInput(chat: systemMessages, tools: tools)
+                } else {
+                    userInput = UserInput(chat: systemMessages)
+                }
+                
                 let input = try await context.processor.prepare(input: userInput)
                 
                 return try MLXLMCommon.generate(input: input, parameters: .init(), context: context) { tokens in
