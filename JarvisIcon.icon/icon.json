@@ -1,0 +1,45 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.73866,0.58429,1.00000,1.00000",
+      "display-p3:0.88143,0.56983,0.72707,1.00000"
+    ]
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.94974,0.96992,0.88384,1.00000",
+              "display-p3:0.69748,0.85836,0.90735,1.00000"
+            ]
+          },
+          "image-name" : "apple.intelligence@2x.png",
+          "name" : "apple.intelligence@2x",
+          "position" : {
+            "scale" : 0.5,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
