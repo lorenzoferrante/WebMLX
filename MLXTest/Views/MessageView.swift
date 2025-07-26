@@ -16,6 +16,7 @@ struct MessageView: View {
             switch message.role {
             case .assistant:
                 Text(.init(message.content))
+                    .textSelection(.enabled)
                     .fontDesign(.serif)
                     .padding(10)
                     .frame(
@@ -25,6 +26,7 @@ struct MessageView: View {
                     .glassEffect(in: .rect(cornerRadius: 16))
             case .user:
                 Text(.init(message.content))
+                    .textSelection(.enabled)
                     .padding(10)
                     .frame(
                         maxWidth: .infinity,

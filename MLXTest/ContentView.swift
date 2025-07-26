@@ -13,6 +13,7 @@ import MLXLMCommon
 struct ContentView: View {
     
     @State var vm: MLXViewModel = MLXViewModel()
+    @State var statusManager = StatusManager.shared
     
     private let bottomID = "bottomID"
     
@@ -28,6 +29,7 @@ struct ContentView: View {
         NavigationStack {
             ZStack {
                 ChatView(vm: $vm)
+                    .ignoresSafeArea(.keyboard)
                 BottomBar(vm: $vm, prompt: $prompt)
             }
             .toolbar {
@@ -48,6 +50,7 @@ struct ContentView: View {
                 }
             }
             .onAppear {
+                statusManager.status = "Performing web search..."
                 let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
                 print(documents.absoluteString)
                 if vm.getModelConfiguration() == nil {

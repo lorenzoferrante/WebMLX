@@ -1,5 +1,5 @@
 {
-  "originHash" : "269f48c734e0bb63a5ed2d8949b1c68f781f7387e33de085dc4bd870dea3c45c",
+  "originHash" : "fecc580b10c9dbfb5526c2ac51a2b6eea85dafe5c477e597672b37083aa8a06b",
   "pins" : [
     {
       "identity" : "gzipswift",
@@ -62,6 +62,15 @@
       "state" : {
         "revision" : "e0ec0f5f3af6f3e4d5e7a19d2af26b481acb6ba8",
         "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "swift-readability",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Ryu0118/swift-readability",
+      "state" : {
+        "revision" : "d814ecdd0f02caf12cb3b6ee3c324aea6b2d5b5f",
+        "version" : "0.2.0"
       }
     },
     {

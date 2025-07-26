@@ -14,7 +14,7 @@ struct BottomBar: View {
     
     @FocusState private var isFocused: Bool
     
-    @State var isWebSearch: Bool = false
+    @State var isWebSearch: Bool = true
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -42,8 +42,10 @@ struct BottomBar: View {
                             .focused($isFocused)
                             .disabled(vm.isRunning)
                             .onSubmit {
-                                Task {
-                                    await generate(isWebSearch: isWebSearch)
+                                if (!vm.isRunning && vm.modelContainer != nil && vm.downloadFraction != 0) {
+                                    Task {
+                                        await generate(isWebSearch: isWebSearch)
+                                    }
                                 }
                             }
                         
@@ -53,6 +55,7 @@ struct BottomBar: View {
                             } label: {
                                 Image(systemName: "network")
                                     .foregroundColor(isWebSearch ? .accentColor : .secondary)
+                                    .fontWeight(.medium)
                             }
                             .buttonStyle(.plain)
                             .contentShape(Rectangle())
@@ -70,9 +73,10 @@ struct BottomBar: View {
                                     }
                                 } label: {
                                     Image(systemName: "paperplane.fill")
+                                        .fontWeight(.medium)
                                 }
                                 .padding()
-                                .disabled(vm.isRunning)
+                                .disabled(vm.isRunning || vm.modelContainer == nil || vm.downloadFraction == 0)
                             }
                         }
                         .padding([.trailing, .leading])

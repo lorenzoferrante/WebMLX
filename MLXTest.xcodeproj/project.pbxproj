@@ -17,6 +17,7 @@
 		50EF89512E2117AB00F8B76B /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = 50EF89502E2117AB00F8B76B /* MLXLLM */; };
 		50EF89532E2117AB00F8B76B /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 50EF89522E2117AB00F8B76B /* MLXLMCommon */; };
 		50EF89552E2117AB00F8B76B /* MLXVLM in Frameworks */ = {isa = PBXBuildFile; productRef = 50EF89542E2117AB00F8B76B /* MLXVLM */; };
+		50FA163F2E34E43C0031E2F7 /* Readability in Frameworks */ = {isa = PBXBuildFile; productRef = 50FA163E2E34E43C0031E2F7 /* Readability */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,9 +25,22 @@
 		50EF89342E21162900F8B76B /* MLXTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MLXTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		50FA16412E34E6D00031E2F7 /* Exceptions for "MLXTest" folder in "MLXTest" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 50EF89332E21162900F8B76B /* MLXTest */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		50EF89362E21162900F8B76B /* MLXTest */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				50FA16412E34E6D00031E2F7 /* Exceptions for "MLXTest" folder in "MLXTest" target */,
+			);
 			path = MLXTest;
 			sourceTree = "<group>";
 		};
@@ -38,6 +52,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				50EF89512E2117AB00F8B76B /* MLXLLM in Frameworks */,
+				50FA163F2E34E43C0031E2F7 /* Readability in Frameworks */,
 				50EF894A2E21173F00F8B76B /* MLXOptimizers in Frameworks */,
 				50EF89482E21173F00F8B76B /* MLXNN in Frameworks */,
 				50EF894F2E2117AB00F8B76B /* MLXEmbedders in Frameworks */,
@@ -58,6 +73,7 @@
 				50EF89362E21162900F8B76B /* MLXTest */,
 				50EF89352E21162900F8B76B /* Products */,
 				505E43902E33A3DF00DBD2FA /* JarvisIcon.icon */,
+				50FA163D2E34E43C0031E2F7 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,6 +83,13 @@
 				50EF89342E21162900F8B76B /* MLXTest.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		50FA163D2E34E43C0031E2F7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -98,6 +121,7 @@
 				50EF89502E2117AB00F8B76B /* MLXLLM */,
 				50EF89522E2117AB00F8B76B /* MLXLMCommon */,
 				50EF89542E2117AB00F8B76B /* MLXVLM */,
+				50FA163E2E34E43C0031E2F7 /* Readability */,
 			);
 			productName = MLXTest;
 			productReference = 50EF89342E21162900F8B76B /* MLXTest.app */;
@@ -130,6 +154,7 @@
 			packageReferences = (
 				50EF89422E21173F00F8B76B /* XCRemoteSwiftPackageReference "mlx-swift" */,
 				50EF894D2E2117AB00F8B76B /* XCRemoteSwiftPackageReference "mlx-swift-examples" */,
+				503C6B4B2E34E29A0077C5D8 /* XCRemoteSwiftPackageReference "swift-readability" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 50EF89352E21162900F8B76B /* Products */;
@@ -294,7 +319,9 @@
 				DEVELOPMENT_TEAM = XYA85FESD6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MLXTest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Jarvis;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -327,7 +354,9 @@
 				DEVELOPMENT_TEAM = XYA85FESD6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MLXTest/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Jarvis;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -374,6 +403,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		503C6B4B2E34E29A0077C5D8 /* XCRemoteSwiftPackageReference "swift-readability" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Ryu0118/swift-readability";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
 		50EF89422E21173F00F8B76B /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ml-explore/mlx-swift.git";
@@ -437,6 +474,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 50EF894D2E2117AB00F8B76B /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
 			productName = MLXVLM;
+		};
+		50FA163E2E34E43C0031E2F7 /* Readability */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 503C6B4B2E34E29A0077C5D8 /* XCRemoteSwiftPackageReference "swift-readability" */;
+			productName = Readability;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
