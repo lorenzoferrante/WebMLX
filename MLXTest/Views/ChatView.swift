@@ -9,7 +9,7 @@ import SwiftUI
 import MLXLMCommon
 
 struct ChatView: View {
-    @Binding var vm: MLXViewModel
+    @Binding var vm: LLM
     
     private var lastMessageContent: String {
         vm.chat.last?.content ?? ""
@@ -38,7 +38,7 @@ struct ChatView: View {
 }
 
 #Preview {
-    @Previewable @State var vm = MLXViewModel()
+    @Previewable @State var vm = LLM()
     ChatView(vm: $vm)
         .onAppear {
             vm.chat.append(contentsOf: [

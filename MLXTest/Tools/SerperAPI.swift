@@ -10,68 +10,47 @@ import Foundation
 // MARK: - Serper API Networking
 final class SerperAPI {
     /// API key is loaded from environment to avoid hardcoding secrets.
-    private let apiKey: String = ProcessInfo.processInfo.environment["SERPER_API_KEY"] ?? ""
+    private let apiKey: String = "644a912a64bbfd323bda9190ac97c60974236e1c"
     private let session: URLSession
-
+    
     init(session: URLSession = .shared) {
         self.session = session
     }
 
-    /// Searches Serper and returns the parsed response.
-    /// - Parameters:
-    ///   - query: Your search query (e.g. "next f1 race")
-    ///   - location: The location to search from (default: "Italy")
-    ///   - googleDomain: The Google domain to use (default: "google.it")
-    ///   - hl: Language code (default: "it")
-    ///   - gl: Country code (default: "it")
     @available(macOS 12, iOS 15, *)
-    func search(
-        query: String,
-        location: String = "Italy",
-        googleDomain: String = "google.it",
-        hl: String = "it",
-        gl: String = "it"
-    ) async throws -> SerperResponse {
-        var components = URLComponents(string: "https://serpapi.com/search")!
-        components.queryItems = [
-            URLQueryItem(name: "engine", value: "google_light"),
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "location", value: location),
-            URLQueryItem(name: "google_domain", value: googleDomain),
-            URLQueryItem(name: "hl", value: hl),
-            URLQueryItem(name: "gl", value: gl),
-            URLQueryItem(name: "api_key", value: apiKey)
+    func search(query: String) async throws -> SerperResponse {
+        // Build JSON body
+        let requestBody = [
+            "q": query
         ]
+        let bodyData = try JSONEncoder().encode(requestBody)
         
-        guard let url = components.url else {
+        // Configure request
+        guard let url = URL(string: "https://google.serper.dev/search") else {
             throw URLError(.badURL)
         }
+        var request = URLRequest(url: url, timeoutInterval: 30)
+        request.httpMethod = "POST"
+        request.addValue(apiKey, forHTTPHeaderField: "X-API-KEY")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = bodyData
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        
+        // Perform request
         let (data, response) = try await session.data(for: request)
-        
-        // Optional: basic HTTP status check
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else {
             throw URLError(.badServerResponse)
         }
         
-        do {
-            return try JSONDecoder().decode(SerperResponse.self, from: data)
-        } catch {
-            throw error
-        }
+        // Decode and return
+        let result = try JSONDecoder().decode(SerperResponse.self, from: data)
+        return result
     }
 }
 
 // MARK: - Data Models
 
 struct SerperResponse: Decodable {
-    let organicResults: [OrganicResult]
-    private enum CodingKeys: String, CodingKey {
-        case organicResults = "organic_results"
-    }
+    let organic: [OrganicResult]
 }
 
 struct OrganicResult: Decodable {

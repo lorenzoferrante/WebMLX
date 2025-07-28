@@ -126,7 +126,7 @@ class MLXViewModel {
         do {
             let result = try await modelContainer.perform {  context in
                 var systemMessages = messages
-                systemMessages.insert(.init(role: .system, content: systemPrompt), at: 0)
+                await systemMessages.insert(.init(role: .system, content: systemPrompt), at: 0)
                 
                 var userInput: UserInput
                 if includeWebSearch {
@@ -139,16 +139,18 @@ class MLXViewModel {
                 var input = try await context.processor.prepare(input: userInput)
                 
                 if includeWebSearch {
-                    StatusManager.shared.setStatus(to: "Performing web search...")
+                    await MainActor.run {
+                        StatusManager.shared.setStatus(to: "Performing web search...")
+                    }
                     
-                    let originalQueries = messages.filter({$0.role == .user}).map({$0.content}).joined(separator: "\n")
                     let originalQuery = messages.last(where: { $0.role == .user })?.content ?? ""
                     let llmContext = try await handleToolCall(input: input, modelContext: context, query: originalQuery)
                     let userContext = """
-                        Please extract the answer to the ORIGINAL_QUERY with the following context. \
+                        The following CONTEXT is extracted from web searches. \
+                        Reason step by step and answer the ORIGINAL_QUERY as best as you can.
                         Try to stay as concise as possible. Be extremely careful with dates, always report up-to-date information. \
-                        TODAY DATE: \(formattedDate) \
-                        ORIGINAL QUERY: \(originalQueries) \
+                        TODAY DATE: \(await formattedDate) \
+                        ORIGINAL QUERY: \(originalQuery) \
                         CONTEXT: \
                         \(llmContext.joined()) \
                         Answer:
@@ -165,17 +167,21 @@ class MLXViewModel {
                     input = try await context.processor.prepare(input: userInput)
                 }
                 
-                StatusManager.shared.setStatus(to: "Finalizing answer...")
+                await MainActor.run {
+                    StatusManager.shared.setStatus(to: "Finalizing answer...")
+                }
                 
                 return try MLXLMCommon.generate(input: input, parameters: .init(), context: context) { tokens in
                     let text = context.tokenizer.decode(tokens: tokens)
-
+                    
                     Task { @MainActor in
                         chat[chat.count-1].content = text
                         output = text
                     }
                     
-                    StatusManager.shared.clearStatus()
+                    //                    await MainActor.run {
+                    //                        StatusManager.shared.clearStatus()
+                    //                    }
                     return .more
                 }
             }
@@ -226,18 +232,27 @@ class MLXViewModel {
         if let call = extractFunctionCallFrom(callStream) {
             let webSearchQuery = call.parameters["query"]!
             let response = try await serperAPI.search(query: webSearchQuery)
-            let links = response.organicResults.map(\.link)
+            let links = response.organic.map(\.link)
             let crawler = FirecrawlAPI()
-
+            
             try await withThrowingTaskGroup(of: String?.self) { group in
                 for link in links.prefix(4) {
                     group.addTask {
-                        StatusManager.shared.setStatus(to: "Reading \(link)...")
+                        
+                        await MainActor.run {
+                            StatusManager.shared.setStatus(to: "Reading \(link)...")
+                        }
+                        
                         print("[DEBUG] Extracting content from: \(link)")
+                        
                         do {
                             let raw = try await crawler.scrapeMarkdown(from: link).replacingOccurrences(of: "\n", with: "")
                             let summary = try await self.shortSummarize(text: raw, userQuery: query, context: modelContext)
-                            StatusManager.shared.setStatus(to: "Summarizing \(link)...")
+                            
+                            await MainActor.run {
+                                StatusManager.shared.setStatus(to: "Summarizing \(link)...")
+                            }
+                            
                             print("[DEBUG] summary: \(summary)")
                             return summary
                         } catch {
@@ -246,7 +261,7 @@ class MLXViewModel {
                         }
                     }
                 }
-
+                
                 for try await summary in group {
                     if let summary {
                         context.append(summary)
@@ -272,7 +287,7 @@ class MLXViewModel {
         }
         return segments
     }
-
+    
     /// Summarizes the given text into a short, 3-sentence summary.
     private func shortSummarize(text: String, userQuery: String, context: ModelContext) async throws -> String {
         // Ensure the model is loaded
@@ -282,12 +297,12 @@ class MLXViewModel {
         guard modelContainer != nil else {
             throw NSError(domain: "MLXViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "Model not loaded"])
         }
-
+        
         // Chunk large texts based on token count to fit within an 8192-token context window
         let maxModelTokens = 8192
         let reservedTokens = 212  // reserve tokens for prompt overhead and summary
         let maxChunkTokens = maxModelTokens - reservedTokens
-
+        
         // Remove newlines for consistent tokenization
         let sanitizedText = text.replacingOccurrences(of: "\n", with: "")
         // Count tokens
@@ -298,39 +313,39 @@ class MLXViewModel {
             let segments = chunkByTokens(text: sanitizedText, maxTokens: maxChunkTokens, context: context)
             var partialSummaries: [String] = []
             for segment in segments {
-                try await autoreleasepool {
+                try await withAutoreleasepool {
                     StatusManager.shared.setStatus(to: "Summaring chunk ...")
-                    let segSummary = try await shortSummarize(text: segment, userQuery: userQuery, context: context)
+                    let segSummary = try await self.shortSummarize(text: segment, userQuery: userQuery, context: context)
                     partialSummaries.append(segSummary)
                 }
             }
             let merged = partialSummaries.joined(separator: "\n")
             return try await shortSummarize(text: merged, userQuery: userQuery, context: context)
         }
-
+        
         // Build the summarization prompt
         let prompt = """
         TODAY DATE: \(formattedDate) \
         ORIGINAL_QUERY: \(userQuery). \
-        Please extract relevant information from the following context trying to answer the ORIGINAL_QUERY. \
+        Extract relevant information from the following CONTEXT that may be relevant to the ORIGINAL_QUERY. \
         Try to stay as concise as possible. Be extremely careful with dates, always report up-to-date information. \
-        If no valid information is found, return an empty string. \
+        If no valid information is found, only write \"No relevant information found."\\. \
         CONTEXT: \
         \(text.replacingOccurrences(of: "\n", with: ""))
         """
-
+        
         // Prepare chat messages
         let messages: [Chat.Message] = [
             .init(role: .system, content: systemPrompt),
             .init(role: .user, content: prompt)
         ]
-
+        
         // Prepare the user input without any tools or function calling
         let userInput = UserInput(chat: messages)
-
+        
         // Get the input for the model
         let prepared = try await context.processor.prepare(input: userInput)
-
+        
         // Generate the summary
         var summary = ""
         _ = try MLXLMCommon.generate(input: prepared, parameters: .init(), context: context) { tokenBatch in
@@ -338,8 +353,23 @@ class MLXViewModel {
             summary = chunk
             return .more
         }
-
+        
         return summary.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    private func withAutoreleasepool<T>(
+        _ operation: @escaping () async throws -> T
+    ) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            Task(priority: .userInitiated) {
+                do {
+                    let result = try await operation()
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
     }
 }
 

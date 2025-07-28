@@ -12,7 +12,8 @@ import MLXLMCommon
 
 struct ContentView: View {
     
-    @State var vm: MLXViewModel = MLXViewModel()
+//    @State var vm: MLXViewModel = MLXViewModel()
+    @State var vm = LLM()
     @State var statusManager = StatusManager.shared
     
     private let bottomID = "bottomID"
@@ -53,16 +54,16 @@ struct ContentView: View {
             .onAppear {
                 let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
                 print(documents.absoluteString)
-                if vm.getModelConfiguration() == nil {
-                    showModelSelection.toggle()
-                } else {
-                    Task {
-                        await vm.loadModel()
-                    }
-                }
+//                if vm.getModelConfiguration() == nil {
+//                    showModelSelection.toggle()
+//                } else {
+//                    Task {
+//                        await vm.loadModel()
+//                    }
+//                }
             }
             .sheet(isPresented: $showModelSelection) {
-                ModelSelectorView(vm: $vm)
+//                ModelSelectorView(vm: $vm)
             }
         }
     }
@@ -70,8 +71,8 @@ struct ContentView: View {
     private func reset() {
         withAnimation {
             vm.chat.removeAll()
-            vm.output = ""
-            vm.tokensPerSecond = 0
+//            vm.output = ""
+//            vm.tokensPerSecond = 0
             prompt = ""
         }
     }
